@@ -13,16 +13,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   
-  // Dropdown States
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Untuk Daftar
-  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false); // Untuk Cari
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [finalSeats, setFinalSeats] = useState<string[]>([]);
   const [regId, setRegId] = useState<string>('');
   const [baseUrl, setBaseUrl] = useState('');
 
-  // Data Form
   const [formData, setFormData] = useState({ childName: '', childClass: 'KB B1' });
   const [searchData, setSearchData] = useState({ childName: '', childClass: 'KB B1' });
 
@@ -37,7 +35,6 @@ export default function Home() {
   const downloadTicketAsImage = async () => {
     if (!ticketRef.current) return;
     try {
-      // Pixel Ratio 4 agar HD seperti di halaman tiket
       const dataUrl = await toPng(ticketRef.current, { cacheBust: true, pixelRatio: 4 });
       const link = document.createElement("a");
       link.download = `VIP-Ticket-${formData.childName}.png`;
@@ -130,17 +127,16 @@ export default function Home() {
   };
 
   return (
+    // PERBAIKAN: Tambahkan 'overflow-x-hidden' di sini
     <div 
-      className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-x-hidden"
       style={{ background: 'linear-gradient(to bottom right, #fff7ed, #fffbeb, #fefce8)' }}
     >
       
-      {/* Dekorasi Background */}
       <div className="absolute -top-12 -left-12 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
       <div className="absolute -bottom-12 -right-12 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
       <div className="absolute top-1/3 left-1/4 w-60 h-60 bg-red-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
 
-      {/* POPUP SUKSES */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-white animate-bounce-in relative">
@@ -165,11 +161,10 @@ export default function Home() {
       )}
 
       {/* --- HIDDEN TICKET (PREMIUM STUB DESIGN) --- */}
-      {/* UPDATE: Menggunakan desain Stub Premium yang sama dengan halaman ticket/page.tsx */}
       <div className="absolute -z-50 opacity-0 pointer-events-none top-0 left-0">
         <div ref={ticketRef} style={{ 
           width: '600px', 
-          background: '#111827', // Dark Mode Ticket
+          background: '#111827', 
           padding: '20px',
           fontFamily: 'sans-serif'
         }}>
@@ -180,19 +175,15 @@ export default function Home() {
             overflow: 'hidden',
             boxShadow: '0 30px 60px rgba(0,0,0,0.5)'
           }}>
-            {/* Left Section (Main Info) */}
             <div style={{ flex: 1, padding: '40px', position: 'relative', borderRight: '3px dashed #f3f4f6' }}>
                <div style={{ position: 'absolute', top: '-100px', left: '-50px', fontSize: '200px', fontWeight: 900, color: '#f9fafb', zIndex: 0 }}>21</div>
-               
                <div style={{ position: 'relative', zIndex: 1 }}>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#ea580c', letterSpacing: '4px', marginBottom: '10px' }}>ADMISSION TICKET</p>
                   <h1 style={{ fontSize: '42px', fontWeight: 900, color: '#111827', lineHeight: 1, margin: '0 0 40px 0' }}>PENTAS SENI<br/>2026</h1>
-                  
                   <div style={{ marginBottom: '30px' }}>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '5px' }}>Guest Name</p>
                     <p style={{ fontSize: '32px', fontWeight: 900, color: '#111827', textTransform: 'capitalize' }}>{formData.childName}</p>
                   </div>
-
                   <div style={{ display: 'flex', gap: '40px' }}>
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Class</p>
@@ -204,33 +195,24 @@ export default function Home() {
                     </div>
                   </div>
                </div>
-
-               {/* Side cutouts */}
                <div style={{ position: 'absolute', bottom: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
                <div style={{ position: 'absolute', top: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
             </div>
-
-            {/* Right Section (Stub) */}
             <div style={{ width: '200px', background: '#ea580c', padding: '40px 20px', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
                <div style={{ textAlign: 'center' }}>
                   <p style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '2px', marginBottom: '10px' }}>SEAT NO.</p>
                   <h2 style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1, margin: 0 }}>{finalSeats.join("/")}</h2>
                </div>
-
                <div style={{ background: 'white', padding: '10px', borderRadius: '16px' }}>
                   {regId && baseUrl && <QRCodeSVG value={`${baseUrl}/ticket?id=${regId}`} size={100} level={"H"} fgColor="#ea580c" />}
                </div>
-
                <p style={{ fontSize: '10px', fontWeight: 700, opacity: 0.8, textAlign: 'center' }}>TK AISYIYAH 21<br/>RAWAMANGUN</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* --- FORM UTAMA --- */}
       <div className="bg-white/90 backdrop-blur-xl p-8 rounded-4xl w-full max-w-md shadow-2xl shadow-orange-100 border border-white relative z-10">
-        
-        {/* HEADER DENGAN GRAFIS */}
         <div className="text-center mb-8 relative">
           <div className="flex justify-center mb-4 relative h-20">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-orange-300/30 rounded-full blur-xl animate-pulse"></div>
@@ -243,7 +225,7 @@ export default function Home() {
                     <path fillRule="evenodd" d="M19.957 4.297a.75.75 0 00-1.263-.636 3.003 3.003 0 01-3.352.82L10.5 2.223v10.233a4.486 4.486 0 00-1.313-.337C6.544 11.885 4.5 13.29 4.5 15.023c0 1.734 2.044 3.138 4.687 3.138 2.643 0 4.687-1.404 4.687-3.138V6.946l4.266 1.756a.75.75 0 001.044-.677V4.297z" clipRule="evenodd" />
                  </svg>
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-orange-400 animate-pulse">
-                    <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 016 20.25z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 019 4.5zM6 20.25a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 016 20.25z" clipRule="evenodd" />
                  </svg>
              </div>
           </div>
@@ -251,7 +233,6 @@ export default function Home() {
           <p className="text-gray-500 font-bold text-sm uppercase tracking-wide relative z-10">TK Aisyiyah 21 Rawamangun</p>
         </div>
 
-        {/* Tab Switcher */}
         <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-8">
           <button onClick={() => { setActiveTab('daftar'); setStatus(null); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'daftar' ? 'bg-white text-orange-600 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}>Daftar Baru</button>
           <button onClick={() => { setActiveTab('cek'); setStatus(null); }} className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'cek' ? 'bg-white text-orange-600 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}>Cek Tiket</button>
@@ -284,7 +265,6 @@ export default function Home() {
                 </>
               )}
             </div>
-            
             <button type="submit" disabled={loading} className="w-full text-white font-bold py-4 rounded-2xl shadow-xl shadow-orange-500/20 mt-4 flex justify-center items-center gap-3 text-lg transform transition active:scale-95 hover:brightness-110 group" style={{ background: 'linear-gradient(to right, #f97316, #ea580c)' }}>
               {loading ? (
                 <span className="animate-pulse">Sedang Memproses...</span>

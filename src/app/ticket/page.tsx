@@ -43,22 +43,16 @@ function TicketContent() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (typeof window !== 'undefined') {
-        setBaseUrl(window.location.origin);
-      }
-
+      if (typeof window !== 'undefined') setBaseUrl(window.location.origin);
       if (regId) {
         const { data: reg } = await supabase.from('registrations').select('*').eq('id', regId).single();
         if (reg) setStudentData(reg);
-        
         const { data: mySeat } = await supabase.from('seats').select('*').eq('assigned_to', regId);
         if (mySeat) setMySeats(mySeat);
       }
-
       const { data: all } = await supabase.from('seats').select('*').order('row_name').order('seat_number');
       if (all) setAllSeats(all);
 
-      // --- LOGIKA FETCH & GROUPING TAMU ---
       const { data: guests } = await supabase
         .from('seats')
         .select(`id, seat_number, is_occupied, assigned_to, registrations (id, child_name, child_class)`)
@@ -68,12 +62,9 @@ function TicketContent() {
         
       if (guests) {
          const groupedMap = new Map<string, GroupedGuest>();
-
          (guests as unknown as GuestSeatData[]).forEach((seat) => {
             const reg = Array.isArray(seat.registrations) ? seat.registrations[0] : seat.registrations;
-            
             if (!reg) return;
-
             if (!groupedMap.has(reg.id)) {
               groupedMap.set(reg.id, {
                 regId: reg.id,
@@ -84,67 +75,51 @@ function TicketContent() {
             }
             groupedMap.get(reg.id)?.seatNumbers.push(seat.id);
          });
-
          setGuestList(Array.from(groupedMap.values()));
       }
     };
-
     fetchData();
   }, [regId]);
 
   const downloadUpdatedTicket = async () => {
     if (!ticketRef.current) return;
     try {
-      // Pixel ratio tinggi agar hasil download tajam (HD)
       const dataUrl = await toPng(ticketRef.current, { cacheBust: true, pixelRatio: 4 });
       const link = document.createElement("a");
       link.download = `VIP-Ticket-${studentData?.child_name || 'Event'}.png`;
       link.href = dataUrl;
       link.click();
-    } catch (err) {
-      console.error("Gagal download:", err);
-    }
+    } catch (err) { console.error("Gagal download:", err); }
   };
 
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
   return (
-    // FIX 1: Gradient Inline Style pada Background Body
-    <div className="min-h-screen bg-gray-50 text-gray-800 p-6 pb-40 font-sans relative" style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}>
+    // PERBAIKAN: Tambahkan 'overflow-x-hidden'
+    <div className="min-h-screen bg-white text-gray-800 p-6 pb-40 font-sans relative overflow-x-hidden" style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}>
       
       {/* HEADER PAGE */}
-      <div className="text-center mb-10 pt-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
-          <span>📍</span> Denah Lokasi
-        </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">TK Aisyiyah 21</h1>
-        <p className="text-gray-400 font-medium text-sm mt-1">Rawamangun • Pentas Seni 2026</p>
+      <div className="text-center mb-12 pt-6">
+        <h1 className="text-4xl font-black text-gray-900 tracking-tighter">PETA LOKASI & TIKET</h1>
+        <div className="h-1 w-20 bg-orange-500 mx-auto mt-2"></div>
       </div>
 
-      {/* PETA VISUAL (Modern Rounded Style) */}
-      <div className="max-w-5xl mx-auto overflow-x-auto rounded-[2.5rem] p-10 bg-white border border-gray-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] mb-12 relative z-10">
+      {/* PETA VISUAL */}
+      <div className="max-w-5xl mx-auto overflow-x-auto rounded-3xl p-10 bg-white border-4 border-gray-100 shadow-2xl mb-12 relative z-10">
         <div style={{ minWidth: '800px' }} className="text-center">
-          
-          {/* PANGGUNG MODERN (Curved) */}
           <div className="mb-14 relative mx-auto w-2/3">
-             <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
-             {/* FIX 2: Gradient Inline Style pada Panggung */}
-             <div 
-                className="h-16 rounded-b-[100px] shadow-xl shadow-orange-500/20 flex items-center justify-center relative z-10 border-t-4 border-orange-300"
-                style={{ background: 'linear-gradient(to bottom, #fb923c, #ea580c)' }}
-             >
-                <span className="text-[10px] font-black tracking-[0.4em] text-white uppercase mt-2">Panggung Utama</span>
+             <div className="h-16 rounded-b-[50px] shadow-xl flex items-center justify-center relative z-10 border-t-8 border-orange-300" style={{ background: 'linear-gradient(to bottom, #fb923c, #ea580c)' }}>
+                <span className="text-[12px] font-black tracking-[0.5em] text-white uppercase">PANGGUNG UTAMA</span>
              </div>
           </div>
 
-          {/* GRID KURSI */}
           <div className="space-y-4">
             {rows.map((rowName) => {
               const seatsInRow = allSeats.filter(s => s.row_name === rowName);
               const halfIndex = Math.floor(seatsInRow.length / 2);
               return (
                 <div key={rowName} className="flex justify-center items-center gap-3">
-                  <div className="w-6 font-bold text-gray-300 text-xs">{rowName}</div>
+                  <div className="w-8 font-black text-gray-200 text-sm">{rowName}</div>
                   {seatsInRow.map((seat, index) => {
                     const isMine = seat.assigned_to === regId;
                     const isTaken = seat.is_occupied && !isMine;
@@ -154,12 +129,12 @@ function TicketContent() {
                         key={seat.id} 
                         className={`
                           ${isAisle ? 'ml-20' : ''} 
-                          w-10 h-10 flex items-center justify-center font-bold text-[10px] transition-all duration-300
+                          w-11 h-11 flex items-center justify-center font-bold text-xs transition-all duration-300 rounded-xl
                           ${isMine 
-                            ? 'bg-green-500 text-white shadow-lg shadow-green-500/40 z-10 scale-110 rounded-xl ring-2 ring-offset-2 ring-green-100' 
+                            ? 'bg-orange-500 text-white shadow-2xl scale-125 z-10 ring-4 ring-orange-200' 
                             : isTaken 
-                              ? 'bg-gray-100 text-gray-300 cursor-not-allowed rounded-lg border border-gray-200' 
-                              : 'bg-white text-gray-500 border border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:shadow-md rounded-xl cursor-pointer'
+                              ? 'bg-gray-800 text-gray-600' 
+                              : 'bg-gray-100 text-gray-400 border-2 border-gray-200 hover:border-orange-500 hover:text-orange-500'
                           }
                         `}
                       >
@@ -167,7 +142,7 @@ function TicketContent() {
                       </div>
                     );
                   })}
-                  <div className="w-6 font-bold text-gray-300 text-xs">{rowName}</div>
+                  <div className="w-8 font-black text-gray-200 text-sm">{rowName}</div>
                 </div>
               );
             })}
@@ -175,87 +150,42 @@ function TicketContent() {
         </div>
       </div>
 
-      {/* DETAIL TIKET & DOWNLOAD */}
+      {/* DOWNLOAD SECTION */}
       {regId && (
-        <div className="max-w-md mx-auto bg-white rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/5 border border-gray-100 mb-16 relative z-10">
-          {/* FIX 3: Gradient Inline Style pada Header Tiket */}
-          <div className="p-6 text-center relative overflow-hidden" style={{ background: 'linear-gradient(to right, #3b82f6, #2563eb)' }}>
-             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-             <h3 className="text-white font-bold text-lg relative z-10">Tiket Anda</h3>
-             <p className="text-blue-100 text-xs relative z-10">Silakan unduh tiket terbaru jika ada perubahan</p>
-          </div>
-          <div className="p-8">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-5 mb-5">
-                <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Nama Siswa</p>
-                    <p className="text-lg font-black text-gray-800 capitalize">{studentData?.child_name}</p>
-                </div>
-                <div className="text-right">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Kelas</p>
-                    <p className="text-lg font-black text-blue-600">{studentData?.child_class}</p>
-                </div>
-            </div>
-            
-            <div className="bg-orange-50 p-5 rounded-2xl flex justify-between items-center mb-8 border border-orange-100">
-                <span className="font-bold text-orange-800 text-sm">Nomor Kursi</span>
-                <span className="text-3xl font-black text-orange-600 tracking-tight">{mySeats.map(s => s.id).join(" & ")}</span>
-            </div>
-
+        <div className="max-w-md mx-auto mb-20">
             <button 
               onClick={downloadUpdatedTicket}
-              className="w-full py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-black transition-transform active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-6 bg-orange-600 text-white font-black rounded-full shadow-[0_15px_30px_rgba(234,88,12,0.4)] hover:bg-orange-700 transition-all active:scale-95 flex items-center justify-center gap-4 text-xl tracking-tight"
             >
-              <span>📥</span> Download E-Ticket
+              <span>🎟️</span> SIMPAN TIKET VIP
             </button>
-          </div>
         </div>
       )}
 
-      {/* DAFTAR TAMU HADIR */}
-      <div className="max-w-3xl mx-auto relative z-10">
-        <h3 className="text-center text-lg font-black text-gray-800 mb-6 uppercase tracking-widest">Daftar Teman Hadir</h3>
-        <div className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100">
-          <div className="max-h-96 overflow-y-auto custom-scrollbar">
-            <table className="w-full text-sm text-left text-gray-600">
-              <thead className="bg-gray-50 text-gray-400 sticky top-0 uppercase text-[10px] font-bold tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Kursi</th>
-                  <th className="px-6 py-4">Nama Siswa</th>
-                  <th className="px-6 py-4">Kelas</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {guestList.map((guest) => (
-                  <tr key={guest.regId} className="hover:bg-blue-50/50 transition-colors">
-                    <td className="px-6 py-4 font-black text-blue-600 text-xs">{guest.seatNumbers.join(", ")}</td>
-                    <td className="px-6 py-4 font-bold text-gray-800 capitalize">{guest.childName || 'Tamu'}</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-bold border border-gray-200">
-                        {guest.childClass}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {guestList.length === 0 && <tr><td colSpan={3} className="text-center py-10 text-gray-400 font-medium">Belum ada yang mendaftar.</td></tr>}
-              </tbody>
-            </table>
-          </div>
+      {/* DAFTAR KEHADIRAN */}
+      <div className="max-w-3xl mx-auto">
+        <h3 className="text-center text-xl font-black text-gray-900 mb-8 tracking-widest uppercase">Daftar Kehadiran</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           {guestList.map((guest) => (
+             <div key={guest.regId} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border-2 border-gray-100">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-black">
+                   {guest.seatNumbers[0]}
+                </div>
+                <div>
+                   <p className="font-black text-gray-900 capitalize">{guest.childName}</p>
+                   <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">{guest.childClass} • Kursi {guest.seatNumbers.join(" & ")}</p>
+                </div>
+             </div>
+           ))}
+           {guestList.length === 0 && <p className="col-span-full text-center text-gray-400">Belum ada peserta terdaftar.</p>}
         </div>
       </div>
 
-      {/* LEGENDA FIXED */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 border border-gray-200 shadow-2xl z-50">
-         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-500 rounded-full"></div><span className="text-[10px] font-bold text-gray-700 uppercase">Kamu</span></div>
-         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded-full"></div><span className="text-[10px] font-bold text-gray-400 uppercase">Terisi</span></div>
-         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-white border-2 border-gray-300 rounded-full"></div><span className="text-[10px] font-bold text-gray-700 uppercase">Kosong</span></div>
-      </div>
-
-      {/* --- RENDER ETICKET HIDDEN (PREMIUM STUB DESIGN) --- */}
-      {/* Ini adalah bagian yang akan di-convert jadi gambar .PNG */}
+      {/* --- RENDER ETICKET HIDDEN --- */}
       <div className="absolute -z-50 opacity-0 pointer-events-none top-0 left-0">
         <div ref={ticketRef} style={{ 
           width: '600px', 
-          background: '#111827', // Dark Mode Background
+          background: '#111827', 
           padding: '20px',
           fontFamily: 'sans-serif'
         }}>
@@ -266,20 +196,15 @@ function TicketContent() {
             overflow: 'hidden',
             boxShadow: '0 30px 60px rgba(0,0,0,0.5)'
           }}>
-            {/* Left Section (Informasi Utama) */}
             <div style={{ flex: 1, padding: '40px', position: 'relative', borderRight: '3px dashed #f3f4f6' }}>
-               {/* Watermark Angka 21 */}
                <div style={{ position: 'absolute', top: '-100px', left: '-50px', fontSize: '200px', fontWeight: 900, color: '#f9fafb', zIndex: 0 }}>21</div>
-               
                <div style={{ position: 'relative', zIndex: 1 }}>
                   <p style={{ fontSize: '14px', fontWeight: 800, color: '#ea580c', letterSpacing: '4px', marginBottom: '10px' }}>ADMISSION TICKET</p>
                   <h1 style={{ fontSize: '42px', fontWeight: 900, color: '#111827', lineHeight: 1, margin: '0 0 40px 0' }}>PENTAS SENI<br/>2026</h1>
-                  
                   <div style={{ marginBottom: '30px' }}>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: '5px' }}>Guest Name</p>
                     <p style={{ fontSize: '32px', fontWeight: 900, color: '#111827', textTransform: 'capitalize' }}>{studentData?.child_name}</p>
                   </div>
-
                   <div style={{ display: 'flex', gap: '40px' }}>
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase' }}>Class</p>
@@ -291,27 +216,27 @@ function TicketContent() {
                     </div>
                   </div>
                </div>
-
-               {/* Lubang Dekorasi (Cutouts) */}
                <div style={{ position: 'absolute', bottom: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
                <div style={{ position: 'absolute', top: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
             </div>
-
-            {/* Right Section (Sobekan Stub) */}
             <div style={{ width: '200px', background: '#ea580c', padding: '40px 20px', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
                <div style={{ textAlign: 'center' }}>
                   <p style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '2px', marginBottom: '10px' }}>SEAT NO.</p>
                   <h2 style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1, margin: 0 }}>{mySeats.map(s => s.id).join("/")}</h2>
                </div>
-
                <div style={{ background: 'white', padding: '10px', borderRadius: '16px' }}>
                   {regId && baseUrl && <QRCodeSVG value={`${baseUrl}/ticket?id=${regId}`} size={100} level={"H"} fgColor="#ea580c" />}
                </div>
-
                <p style={{ fontSize: '10px', fontWeight: 700, opacity: 0.8, textAlign: 'center' }}>TK AISYIYAH 21<br/>RAWAMANGUN</p>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* LEGENDA */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-full flex items-center gap-8 shadow-2xl z-50">
+         <div className="flex items-center gap-2"><div className="w-4 h-4 bg-orange-500 rounded-full"></div><span className="text-xs font-black uppercase">Milik Anda</span></div>
+         <div className="flex items-center gap-2"><div className="w-4 h-4 bg-gray-700 rounded-full"></div><span className="text-xs font-black uppercase">Terisi</span></div>
       </div>
 
     </div>
