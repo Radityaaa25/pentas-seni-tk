@@ -169,7 +169,7 @@ function TicketContent() {
           <div style={{ position: 'relative', zIndex: 2 }}>
             {/* Header Festive */}
             <div style={{ background: 'linear-gradient(135deg, #fb923c, #ea580c)', padding: '30px 20px', textAlign: 'center', color: 'white', borderBottomLeftRadius: '30px', borderBottomRightRadius: '30px', boxShadow: '0 4px 15px rgba(234, 88, 12, 0.3)' }}>
-                 <div style={{ fontSize: '24px', marginBottom: '5px' }}>✨🎭🎈</div>
+                 <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎭</div>
                  <h1 style={{ fontSize: '26px', fontWeight: 900, margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.1)', letterSpacing: '1px' }}>TIKET PENTAS SENI</h1>
                  <p style={{ fontSize: '12px', fontWeight: 700, opacity: 0.9, marginTop: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>TK Aisyiyah 21 Rawamangun • 2026</p>
             </div>
