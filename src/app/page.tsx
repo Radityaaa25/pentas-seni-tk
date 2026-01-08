@@ -118,11 +118,13 @@ export default function Home() {
   };
 
   return (
-    // Background: Gradient Cream ke Kuning Lembut (Tidak Silau)
-    <div className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
+    // FIX WARNING: Menggunakan style manual untuk gradient background
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-hidden"
+      style={{ background: 'linear-gradient(to bottom right, #fff7ed, #fffbeb, #fefce8)' }}
+    >
       
-      {/* Dekorasi Background Blob (Warna Pastel) */}
-      {/* Perbaikan: Menggunakan class standar Tailwind (-top-12, -left-12, dll) */}
+      {/* Dekorasi Background Blob */}
       <div className="absolute -top-12 -left-12 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
       <div className="absolute -bottom-12 -right-12 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
       <div className="absolute top-1/3 left-1/4 w-60 h-60 bg-red-100 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
@@ -130,7 +132,6 @@ export default function Home() {
       {/* POPUP SUKSES */}
       {showSuccessPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          {/* Perbaikan: rounded-3xl */}
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-white animate-bounce-in relative">
             <div className="text-6xl mb-4">🎉</div>
             <h2 className="text-2xl font-black text-gray-800 mb-2">Pendaftaran Berhasil!</h2>
@@ -152,7 +153,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* --- HIDDEN TICKET (Untuk Cetak - Background Putih agar bersih saat diprint/save) --- */}
+      {/* --- HIDDEN TICKET (Untuk Cetak) --- */}
       <div className="absolute -z-50 opacity-0 pointer-events-none top-0 left-0">
         <div ref={ticketRef} style={{ width: '400px', background: '#fff', border: '2px solid #e5e7eb', borderRadius: '20px', overflow: 'hidden' }}>
           <div style={{ background: 'linear-gradient(to right, #f97316, #ea580c)', padding: '24px', textAlign: 'center', color: 'white' }}>
@@ -181,17 +182,14 @@ export default function Home() {
       </div>
 
       {/* --- FORM UTAMA --- */}
-      {/* Perbaikan: rounded-3xl (standard class) */}
       <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md shadow-xl border border-white relative z-10">
         
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-block p-3 bg-orange-100 rounded-full mb-3 text-2xl shadow-inner">🎨</div>
           <h1 className="text-2xl font-black text-gray-800 mb-1">Pentas Seni 2026</h1>
           <p className="text-gray-500 font-medium text-sm">TK Aisyiyah 21 Rawamangun</p>
         </div>
 
-        {/* Tab Switcher */}
         <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-8">
           <button 
             onClick={() => { setActiveTab('daftar'); setStatus(null); }} 

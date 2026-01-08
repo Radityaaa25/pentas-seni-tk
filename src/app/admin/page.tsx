@@ -77,7 +77,9 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === '1234') { setIsAuthenticated(true); showToast("Login Berhasil!", "success"); } 
+
+    const secretPin = process.env.NEXT_PUBLIC_ADMIN_PIN;
+    if (pin === secretPin) { setIsAuthenticated(true); showToast("Login Berhasil!", "success"); } 
     else { showToast("PIN Salah!", "error"); }
   };
 
