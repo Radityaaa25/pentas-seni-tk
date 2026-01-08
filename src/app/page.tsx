@@ -127,7 +127,6 @@ export default function Home() {
   };
 
   return (
-    // PERBAIKAN: Tambahkan 'overflow-x-hidden' di sini
     <div 
       className="min-h-screen flex items-center justify-center p-4 font-sans relative overflow-x-hidden"
       style={{ background: 'linear-gradient(to bottom right, #fff7ed, #fffbeb, #fefce8)' }}
@@ -198,10 +197,11 @@ export default function Home() {
                <div style={{ position: 'absolute', bottom: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
                <div style={{ position: 'absolute', top: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
             </div>
+            {/* FIX: FONT SIZE DIPERKECIL & LINE HEIGHT DIATUR */}
             <div style={{ width: '200px', background: '#ea580c', padding: '40px 20px', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-               <div style={{ textAlign: 'center' }}>
+               <div style={{ textAlign: 'center', width: '100%' }}>
                   <p style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '2px', marginBottom: '10px' }}>SEAT NO.</p>
-                  <h2 style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1, margin: 0 }}>{finalSeats.join("/")}</h2>
+                  <h2 style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1.1, margin: 0, wordWrap: 'break-word' }}>{finalSeats.join("/")}</h2>
                </div>
                <div style={{ background: 'white', padding: '10px', borderRadius: '16px' }}>
                   {regId && baseUrl && <QRCodeSVG value={`${baseUrl}/ticket?id=${regId}`} size={100} level={"H"} fgColor="#ea580c" />}
@@ -225,7 +225,7 @@ export default function Home() {
                     <path fillRule="evenodd" d="M19.957 4.297a.75.75 0 00-1.263-.636 3.003 3.003 0 01-3.352.82L10.5 2.223v10.233a4.486 4.486 0 00-1.313-.337C6.544 11.885 4.5 13.29 4.5 15.023c0 1.734 2.044 3.138 4.687 3.138 2.643 0 4.687-1.404 4.687-3.138V6.946l4.266 1.756a.75.75 0 001.044-.677V4.297z" clipRule="evenodd" />
                  </svg>
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-orange-400 animate-pulse">
-                    <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 019 4.5zM6 20.25a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 016 20.25z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576-2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813a3.75 3.75 0 002.576-2.576l.813-2.846A.75.75 0 016 20.25z" clipRule="evenodd" />
                  </svg>
              </div>
           </div>
@@ -265,6 +265,7 @@ export default function Home() {
                 </>
               )}
             </div>
+            
             <button type="submit" disabled={loading} className="w-full text-white font-bold py-4 rounded-2xl shadow-xl shadow-orange-500/20 mt-4 flex justify-center items-center gap-3 text-lg transform transition active:scale-95 hover:brightness-110 group" style={{ background: 'linear-gradient(to right, #f97316, #ea580c)' }}>
               {loading ? (
                 <span className="animate-pulse">Sedang Memproses...</span>
@@ -272,7 +273,7 @@ export default function Home() {
                 <>
                   <span>Dapatkan Kursi</span>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-orange-100 transition-transform group-hover:scale-110 group-hover:rotate-6">
-                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94c-.924-.499-1.5-1.466-1.5-2.56 0-1.094.576-2.06 1.5-2.56V9c-.924-.499-1.5-1.466-1.5-2.56 0-1.094.576-2.06 1.5-2.56V3.75a.75.75 0 00-.75-.75H3.75a.75.75 0 00-.75.75v1.94c.924.499 1.5 1.466 1.5 2.56 0 1.094-.576 2.06-1.5 2.56v1.94c.924.499 1.5 1.466 1.5 2.56 0 1.094-.576 2.06-1.5 2.56z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94c-.924-.499-1.5-1.466-1.5-2.56 0-1.094.576-2.06 1.5-2.56V9c-.924-.499-1.5-1.466-1.5-2.56 0-1.094.576-2.06 1.5-2.56V3.75a.75.75 0 00-.75-.75H3.75a.75.75 0 00-.75.75v1.94c.924.499 1.5 1.466 1.5 2.56 0 1.094-.576 2.06-1.5 2.56z" clipRule="evenodd" />
                   </svg>
                 </>
               )}

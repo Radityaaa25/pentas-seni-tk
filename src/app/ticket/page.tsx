@@ -43,18 +43,13 @@ function TicketContent() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (typeof window !== 'undefined') {
-        setBaseUrl(window.location.origin);
-      }
-
+      if (typeof window !== 'undefined') setBaseUrl(window.location.origin);
       if (regId) {
         const { data: reg } = await supabase.from('registrations').select('*').eq('id', regId).single();
         if (reg) setStudentData(reg);
-        
         const { data: mySeat } = await supabase.from('seats').select('*').eq('assigned_to', regId);
         if (mySeat) setMySeats(mySeat);
       }
-
       const { data: all } = await supabase.from('seats').select('*').order('row_name').order('seat_number');
       if (all) setAllSeats(all);
 
@@ -100,70 +95,93 @@ function TicketContent() {
   const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 p-6 pb-40 font-sans relative overflow-x-hidden" style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}>
+    <div className="min-h-screen bg-white text-gray-800 p-4 md:p-6 pb-40 font-sans relative overflow-x-hidden" style={{ background: 'linear-gradient(to bottom, #f9fafb, #ffffff)' }}>
       
-      {/* HEADER PAGE (Desain Bagus Dikembalikan) */}
-      <div className="text-center mb-10 pt-6">
+      {/* HEADER PAGE */}
+      <div className="text-center mb-8 pt-4">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
           <span>📍</span> Denah Lokasi
         </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">TK Aisyiyah 21</h1>
-        <p className="text-gray-400 font-medium text-sm mt-1">Rawamangun • Pentas Seni 2026</p>
+        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">TK Aisyiyah 21</h1>
+        <p className="text-gray-400 font-medium text-xs md:text-sm mt-1">Rawamangun • Pentas Seni 2026</p>
       </div>
 
       {/* PETA VISUAL */}
-      <div className="max-w-5xl mx-auto overflow-x-auto rounded-3xl p-10 bg-white border border-gray-100 shadow-xl mb-12 relative z-10">
-        <div style={{ minWidth: '800px' }} className="text-center">
-          
-          {/* PANGGUNG */}
-          <div className="mb-14 relative mx-auto w-2/3">
-             <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
-             <div 
-                className="h-16 rounded-b-[100px] shadow-xl shadow-orange-500/20 flex items-center justify-center relative z-10 border-t-4 border-orange-300"
-                style={{ background: 'linear-gradient(to bottom, #fb923c, #ea580c)' }}
-             >
-                <span className="text-[10px] font-black tracking-[0.4em] text-white uppercase mt-2">Panggung Utama</span>
-             </div>
-          </div>
+      <div className="max-w-5xl mx-auto overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-xl mb-12 relative z-10">
+        
+        {/* Scroll Hint */}
+        <div className="md:hidden bg-orange-50 text-orange-600 text-[10px] font-bold text-center py-2 flex items-center justify-center gap-2">
+           <span>↔️</span> Geser ke samping untuk melihat posisi
+        </div>
 
-          <div className="space-y-4">
-            {rows.map((rowName) => {
-              const seatsInRow = allSeats.filter(s => s.row_name === rowName);
-              const halfIndex = Math.floor(seatsInRow.length / 2);
-              return (
-                <div key={rowName} className="flex justify-center items-center gap-3">
-                  <div className="w-8 font-black text-gray-400 text-sm">{rowName}</div>
-                  {seatsInRow.map((seat, index) => {
-                    const isMine = seat.assigned_to === regId;
-                    const isTaken = seat.is_occupied && !isMine;
-                    const isAisle = index === halfIndex; 
-                    return (
-                      <div 
-                        key={seat.id} 
-                        className={`
-                          ${isAisle ? 'ml-20' : ''} 
-                          w-10 h-10 flex items-center justify-center font-bold text-xs transition-all duration-300 rounded-xl shadow-sm
-                          ${isMine 
-                            ? 'bg-green-500 text-white shadow-lg shadow-green-500/40 z-10 scale-110 ring-2 ring-offset-2 ring-green-100' 
-                            : isTaken 
-                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300' 
-                              : 'bg-white text-gray-500 border border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:shadow-md cursor-pointer'
-                          }
-                        `}
-                      >
-                        {seat.seat_number}
-                      </div>
-                    );
-                  })}
-                  <div className="w-8 font-black text-gray-400 text-sm">{rowName}</div>
-                </div>
-              );
-            })}
+        {/* Container Scrollable */}
+        <div className="overflow-x-auto p-0 md:p-10 custom-scrollbar relative">
+          <div style={{ minWidth: 'max-content' }} className="text-center mx-auto p-6">
+            
+            {/* PANGGUNG (FIX: md:w-2/3!) */}
+            <div 
+              className="mb-10 md:mb-14 relative mx-auto md:w-2/3!"
+              style={{ width: '600px' }} // Lebar fix untuk mobile
+            >
+               <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-full"></div>
+               <div 
+                  className="h-12 md:h-16 rounded-b-[80px] md:rounded-b-[100px] shadow-xl shadow-orange-500/20 flex items-center justify-center relative z-10 border-t-4 border-orange-300"
+                  style={{ background: 'linear-gradient(to bottom, #fb923c, #ea580c)' }}
+               >
+                  <span className="text-[10px] font-black tracking-[0.4em] text-white uppercase mt-2">Panggung Utama</span>
+               </div>
+            </div>
+
+            <div className="space-y-3 md:space-y-4">
+              {rows.map((rowName) => {
+                const seatsInRow = allSeats.filter(s => s.row_name === rowName);
+                const halfIndex = Math.floor(seatsInRow.length / 2);
+                return (
+                  <div key={rowName} className="flex justify-center items-center gap-2 md:gap-3">
+                    
+                    {/* LABEL KIRI (STICKY) */}
+                    <div className="sticky left-0 z-20 bg-white/95 backdrop-blur px-2 md:px-3 py-1 rounded-r-lg shadow-sm border-r border-gray-100 font-black text-gray-400 text-xs md:text-sm w-8 md:w-10 shrink-0">
+                      {rowName}
+                    </div>
+
+                    {seatsInRow.map((seat, index) => {
+                      const isMine = seat.assigned_to === regId;
+                      const isTaken = seat.is_occupied && !isMine;
+                      const isAisle = index === halfIndex; 
+                      return (
+                        <div 
+                          key={seat.id} 
+                          className={`
+                            ${isAisle ? 'ml-12 md:ml-20' : ''} 
+                            w-8 h-8 md:w-10 md:h-10 text-[9px] md:text-xs shrink-0
+                            flex items-center justify-center font-bold transition-all duration-300 rounded-lg md:rounded-xl shadow-sm
+                            ${isMine 
+                              ? 'bg-green-500 text-white shadow-lg shadow-green-500/40 z-10 scale-110 ring-2 ring-offset-2 ring-green-100' 
+                              : isTaken 
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300' 
+                                : 'bg-white text-gray-500 border border-gray-200 hover:border-orange-400 hover:text-orange-500 hover:shadow-md cursor-pointer'
+                            }
+                          `}
+                        >
+                          {seat.seat_number}
+                        </div>
+                      );
+                    })}
+
+                    {/* LABEL KANAN (STICKY) */}
+                    <div className="sticky right-0 z-20 bg-white/95 backdrop-blur px-2 md:px-3 py-1 rounded-l-lg shadow-sm border-l border-gray-100 font-black text-gray-400 text-xs md:text-sm w-8 md:w-10 shrink-0">
+                      {rowName}
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* CARD DETAIL TIKET (Dimunculkan Kembali) */}
+      {/* CARD DETAIL TIKET */}
       {regId && (
         <div className="max-w-md mx-auto bg-white rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/5 border border-gray-100 mb-16 relative z-10">
           <div className="p-6 text-center relative overflow-hidden" style={{ background: 'linear-gradient(to right, #3b82f6, #2563eb)' }}>
@@ -198,7 +216,7 @@ function TicketContent() {
         </div>
       )}
 
-      {/* DAFTAR HADIR (Tabel Scrollable & Jelas) */}
+      {/* DAFTAR HADIR */}
       <div className="max-w-3xl mx-auto relative z-10">
         <h3 className="text-center text-lg font-black text-gray-800 mb-6 uppercase tracking-widest">Daftar Teman Hadir</h3>
         <div className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-200">
@@ -230,19 +248,19 @@ function TicketContent() {
         </div>
       </div>
 
-      {/* LEGENDA FIXED (Desain Bagus Dikembalikan) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 border border-gray-200 shadow-2xl z-50">
-         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-500 rounded-full shadow-sm shadow-green-500/50"></div><span className="text-[10px] font-bold text-gray-700 uppercase">Kamu</span></div>
+      {/* LEGENDA FIXED */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md px-4 md:px-6 py-3 rounded-full flex items-center gap-4 md:gap-6 border border-gray-200 shadow-2xl z-50 w-max max-w-[90%] justify-center">
+         <div className="flex items-center gap-2"><div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div><span className="text-[10px] font-bold text-gray-700 uppercase">Kamu</span></div>
          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-gray-300 rounded-full"></div><span className="text-[10px] font-bold text-gray-400 uppercase">Terisi</span></div>
          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-white border-2 border-gray-300 rounded-full"></div><span className="text-[10px] font-bold text-gray-700 uppercase">Kosong</span></div>
       </div>
 
-      {/* --- RENDER ETICKET HIDDEN (PREMIUM STUB DESIGN) --- */}
+      {/* --- RENDER ETICKET HIDDEN --- */}
       <div className="absolute -z-50 opacity-0 pointer-events-none top-0 left-0">
         <div ref={ticketRef} style={{ 
           width: '600px', 
           background: '#111827', 
-          padding: '20px',
+          padding: '20px', 
           fontFamily: 'sans-serif'
         }}>
           <div style={{ 
@@ -276,9 +294,11 @@ function TicketContent() {
                <div style={{ position: 'absolute', top: '80px', right: '-15px', width: '30px', height: '30px', background: '#111827', borderRadius: '50%' }}></div>
             </div>
             <div style={{ width: '200px', background: '#ea580c', padding: '40px 20px', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between' }}>
-               <div style={{ textAlign: 'center' }}>
+               <div style={{ textAlign: 'center', width: '100%' }}>
                   <p style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '2px', marginBottom: '10px' }}>SEAT NO.</p>
-                  <h2 style={{ fontSize: '48px', fontWeight: 900, lineHeight: 1, margin: 0 }}>{mySeats.map(s => s.id).join("/")}</h2>
+                  <h2 style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1.1, margin: 0, wordWrap: 'break-word' }}>
+                      {mySeats.map(s => s.id).join("/")}
+                  </h2>
                </div>
                <div style={{ background: 'white', padding: '10px', borderRadius: '16px' }}>
                   {regId && baseUrl && <QRCodeSVG value={`${baseUrl}/ticket?id=${regId}`} size={100} level={"H"} fgColor="#ea580c" />}
