@@ -139,6 +139,7 @@ export default function AdminPage() {
     try {
       await supabase.from('seats').update({ is_occupied: false, assigned_to: null }).eq('assigned_to', deleteModal.regId);
       await supabase.from('registrations').delete().eq('id', deleteModal.regId);
+      
       showToast("Data dihapus & Kursi kosong!", "success");
       setDeleteModal({ isOpen: false, regId: null });
       fetchSeats(); 
@@ -181,19 +182,19 @@ export default function AdminPage() {
 
     try {
       // 1. Cek Duplikat
-      const { data: existingUser } = await supabase
+      const { data: existingUsers } = await supabase
         .from('registrations')
         .select('id')
         .ilike('child_name', addData.name)
         .eq('child_class', addData.class)
-        .single();
+        .limit(1);
 
-      if (existingUser) {
+      if (existingUsers && existingUsers.length > 0) {
         showToast("Siswa ini sudah terdaftar!", "error");
         return;
       }
 
-      // 2. Cari 2 Kursi Kosong
+      // 2. Cari 2 Kursi Kosong (ADMIN BISA AMBIL SEMUA ROW)
       const { data: availableSeats } = await supabase
         .from('seats')
         .select('id')
@@ -208,14 +209,16 @@ export default function AdminPage() {
         return;
       }
 
-      // 3. Simpan Registrasi
-      const { data: registration, error: regError } = await supabase
+      // 3. Simpan Registrasi (Insert)
+      const { data: newRegArray, error: regError } = await supabase
         .from('registrations')
         .insert([{ parent_name: 'Admin Manual', child_name: addData.name, child_class: addData.class }])
-        .select()
-        .single();
+        .select();
 
       if (regError) throw regError;
+      if (!newRegArray || newRegArray.length === 0) throw new Error("Gagal insert data.");
+
+      const registration = newRegArray[0];
 
       // 4. Assign Kursi
       const seatIds = availableSeats.map(s => s.id);
@@ -241,6 +244,10 @@ export default function AdminPage() {
   occupiedSeats.forEach(seat => {
     if (!seat.registrations) return;
     const regId = seat.registrations.id;
+    
+    // FORMAT KURSI: "A-1" bukan ID
+    const seatLabel = `${seat.row_name}-${seat.seat_number}`;
+
     if (!mapReg.has(regId)) {
       mapReg.set(regId, {
         regId: regId,
@@ -249,7 +256,7 @@ export default function AdminPage() {
         seatNumbers: []
       });
     }
-    mapReg.get(regId)?.seatNumbers.push(seat.id);
+    mapReg.get(regId)?.seatNumbers.push(seatLabel);
   });
 
   const allGroupedList = Array.from(mapReg.values());
@@ -258,7 +265,6 @@ export default function AdminPage() {
     p.seatNumbers.join('').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- LOGIN PAGE ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 relative">
@@ -281,7 +287,6 @@ export default function AdminPage() {
     );
   }
 
-  // --- DASHBOARD ---
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans text-gray-900">
       
@@ -295,7 +300,6 @@ export default function AdminPage() {
         onCancel={() => setDeleteModal({ isOpen: false, regId: null })}
       />
 
-      {/* SIDEBAR */}
       <aside className="w-72 bg-white border-r border-gray-300 fixed h-full hidden md:block z-10 shadow-lg">
         <div className="p-8 border-b border-gray-200">
           <h2 className="text-3xl font-black text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #2563eb, #9333ea)' }}>ADMIN TK 🎓</h2>
@@ -315,10 +319,7 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 md:ml-72 p-8 overflow-hidden">
-        
-        {/* Mobile Header */}
         <div className="md:hidden mb-6 flex justify-between items-center bg-white p-4 rounded-2xl shadow-md border border-gray-200">
           <h1 className="text-xl font-black text-blue-700">Admin Panel</h1>
           <div className="flex gap-2">
@@ -351,14 +352,12 @@ export default function AdminPage() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                {/* TOMBOL TAMBAH MANUAL */}
                 <button 
                   onClick={() => setIsAddModalOpen(true)}
                   className="bg-green-600 hover:bg-green-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-green-600/30 whitespace-nowrap flex items-center gap-2 transition-transform active:scale-95"
                 >
                 Tambah
                 </button>
-                {/* TOMBOL REFRESH DATA (POSISI DI SEBELAH KANAN TOMBOL TAMBAH) */}
                 <button 
                   onClick={() => { fetchSeats(); showToast("Data berhasil direfresh!", "success"); }}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-blue-600/30 whitespace-nowrap flex items-center gap-2 transition-transform active:scale-95"
@@ -371,12 +370,11 @@ export default function AdminPage() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-             <p className="font-black text-lg">Memuat Data...</p>
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="font-black text-lg">Memuat Data...</p>
           </div>
         ) : (
           <>
-            {/* VIEW: PETA */}
             {activeView === 'map' && (
               <div className="w-full overflow-x-auto rounded-3xl shadow-md border border-gray-300 bg-white">
                 <div style={{ minWidth: '900px' }} className="p-8"> 
@@ -421,60 +419,61 @@ export default function AdminPage() {
               </div>
             )}
 
-            {/* VIEW: DATA PESERTA */}
             {activeView === 'participants' && (
               <div className="bg-white rounded-3xl shadow-md border border-gray-300 overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-100 text-gray-600 uppercase tracking-wider font-black text-xs border-b-2 border-gray-200">
-                    <tr>
-                      <th className="p-5 pl-8">No Kursi</th>
-                      <th className="p-5">Nama Siswa</th>
-                      <th className="p-5">Kelas</th>
-                      <th className="p-5 text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {filteredParticipants.map((participant) => (
-                      <tr key={participant.regId} className="hover:bg-blue-50/50 transition-colors group">
-                        <td className="p-5 pl-8 font-black text-blue-700 text-lg">
-                            {participant.seatNumbers.join(" & ")}
-                        </td>
-                        <td className="p-5 font-bold text-gray-900 capitalize text-base">{participant.childName}</td>
-                        <td className="p-5">
-                          <span className="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-black text-xs border border-blue-200">
-                            {participant.childClass}
-                          </span>
-                        </td>
-                        <td className="p-5 flex justify-center gap-3">
-                          <button 
-                            onClick={() => openEditModal(participant.regId, participant.childName, participant.childClass)}
-                            className="bg-yellow-100 text-yellow-800 p-2.5 rounded-xl hover:bg-yellow-200 font-bold transition-colors border border-yellow-200"
-                            title="Edit Data"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            onClick={() => confirmDelete(participant.regId)}
-                            className="bg-red-100 text-red-800 p-2.5 rounded-xl hover:bg-red-200 font-bold transition-colors border border-red-200"
-                            title="Hapus Data"
-                          >
-                            🗑️
-                          </button>
-                        </td>
+                {/* FIX: MENGGUNAKAN MAX-H-150 UNTUK MENGHILANGKAN WARNING */}
+                <div className="max-h-150 overflow-y-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-100 text-gray-600 uppercase tracking-wider font-black text-xs border-b-2 border-gray-200 sticky top-0 z-10">
+                      <tr>
+                        <th className="p-5 pl-8">No Kursi</th>
+                        <th className="p-5">Nama Siswa</th>
+                        <th className="p-5">Kelas</th>
+                        <th className="p-5 text-center">Aksi</th>
                       </tr>
-                    ))}
-                    {filteredParticipants.length === 0 && (
-                      <tr><td colSpan={4} className="p-12 text-center text-gray-500 font-bold text-lg">Data tidak ditemukan.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredParticipants.map((participant) => (
+                        <tr key={participant.regId} className="hover:bg-blue-50/50 transition-colors group">
+                          <td className="p-5 pl-8 font-black text-blue-700 text-lg">
+                              {participant.seatNumbers.join(" & ")}
+                          </td>
+                          <td className="p-5 font-bold text-gray-900 capitalize text-base">{participant.childName}</td>
+                          <td className="p-5">
+                            <span className="bg-blue-100 text-blue-800 px-4 py-1.5 rounded-full font-black text-xs border border-blue-200">
+                              {participant.childClass}
+                            </span>
+                          </td>
+                          <td className="p-5 flex justify-center gap-3">
+                            <button 
+                              onClick={() => openEditModal(participant.regId, participant.childName, participant.childClass)}
+                              className="bg-yellow-100 text-yellow-800 p-2.5 rounded-xl hover:bg-yellow-200 font-bold transition-colors border border-yellow-200"
+                              title="Edit Data"
+                            >
+                              ✏️
+                            </button>
+                            <button 
+                              onClick={() => confirmDelete(participant.regId)}
+                              className="bg-red-100 text-red-800 p-2.5 rounded-xl hover:bg-red-200 font-bold transition-colors border border-red-200"
+                              title="Hapus Data"
+                            >
+                              🗑️
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredParticipants.length === 0 && (
+                        <tr><td colSpan={4} className="p-12 text-center text-gray-500 font-bold text-lg">Data tidak ditemukan.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </>
         )}
       </main>
 
-      {/* MODAL TAMBAH MANUAL */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl transform transition-all scale-100 border-4 border-green-500">
@@ -517,7 +516,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* MODAL EDIT */}
       {isEditModalOpen && editData && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl transform transition-all scale-100 border-4 border-blue-500">

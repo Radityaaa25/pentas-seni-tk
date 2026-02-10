@@ -12,10 +12,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// --- BAGIAN INI DIUBAH ---
 export const metadata: Metadata = {
   title: "Pentas Seni TK Aisyiyah 21 Rawamangun 2026",
   description: "Aplikasi Pendaftaran & E-Ticket Pentas Seni",
+  // Menambahkan konfigurasi icon menggunakan TKSD.png
+  icons: {
+    icon: '/TKSD.png',
+    shortcut: '/TKSD.png',
+    apple: '/TKSD.png',
+  }
 };
 
 export default function RootLayout({
@@ -24,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
