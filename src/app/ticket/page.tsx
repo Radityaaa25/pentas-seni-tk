@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useRef, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation'; // Tambah useRouter
+import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { toPng } from 'html-to-image';
 import { QRCodeSVG } from 'qrcode.react';
@@ -16,14 +16,6 @@ type Seat = {
   registrations?: Registration | null;
 };
 type FullRegistration = { id: string; child_name: string; child_class: string; };
-type GroupedGuest = { regId: string; childName: string; childClass: string; seatNumbers: string[]; };
-type GuestSeatData = {
-  id: string;
-  row_name: string;
-  seat_number: number;
-  assigned_to: string;
-  registrations: { id: string; child_name: string; child_class: string } | { id: string; child_name: string; child_class: string }[] | null;
-};
 
 export default function TicketPage() {
   return (
@@ -34,7 +26,7 @@ export default function TicketPage() {
 }
 
 function TicketContent() {
-  const router = useRouter(); // Init router
+  const router = useRouter(); 
   const searchParams = useSearchParams();
   const regId = searchParams.get('id');
   const ticketRef = useRef<HTMLDivElement>(null);
@@ -42,7 +34,6 @@ function TicketContent() {
   const [mySeats, setMySeats] = useState<Seat[]>([]);
   const [allSeats, setAllSeats] = useState<Seat[]>([]);
   const [studentData, setStudentData] = useState<FullRegistration | null>(null);
-  const [guestList, setGuestList] = useState<GroupedGuest[]>([]);
   const [baseUrl, setBaseUrl] = useState('');
 
   useEffect(() => {
@@ -59,35 +50,6 @@ function TicketContent() {
 
       const { data: all } = await supabase.from('seats').select('*').order('row_name').order('seat_number');
       if (all) setAllSeats(all);
-
-      const { data: guests } = await supabase
-        .from('seats')
-        .select(`id, row_name, seat_number, is_occupied, assigned_to, registrations (id, child_name, child_class)`)
-        .eq('is_occupied', true)
-        .not('assigned_to', 'is', null)
-        .order('row_name', { ascending: true })
-        .order('seat_number', { ascending: true });
-        
-      if (guests) {
-         const groupedMap = new Map<string, GroupedGuest>();
-         (guests as unknown as GuestSeatData[]).forEach((seat) => {
-            const reg = Array.isArray(seat.registrations) ? seat.registrations[0] : seat.registrations;
-            if (!reg) return;
-            
-            const seatLabel = `${seat.row_name}-${seat.seat_number}`;
-
-            if (!groupedMap.has(reg.id)) {
-              groupedMap.set(reg.id, {
-                regId: reg.id,
-                childName: reg.child_name,
-                childClass: reg.child_class,
-                seatNumbers: []
-              });
-            }
-            groupedMap.get(reg.id)?.seatNumbers.push(seatLabel);
-         });
-         setGuestList(Array.from(groupedMap.values()));
-      }
     };
     fetchData();
   }, [regId]);
@@ -95,7 +57,7 @@ function TicketContent() {
   const downloadUpdatedTicket = async () => {
     if (!ticketRef.current) return;
     try {
-      const dataUrl = await toPng(ticketRef.current, { cacheBust: true, pixelRatio: 4 });
+      const dataUrl = await toPng(ticketRef.current, { cacheBust: true, pixelRatio: 3 });
       const link = document.createElement("a");
       link.download = `VIP-Ticket-${studentData?.child_name || 'Event'}.png`;
       link.href = dataUrl;
@@ -126,6 +88,7 @@ function TicketContent() {
     >
       <div className="absolute inset-0 bg-[#3e2723]/5 pointer-events-none"></div>
       
+      {/* HEADER & LEGEND */}
       <div className="text-center mb-8 pt-4 relative z-10 animate-fade-in-up">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#fff8e1] text-[#5d4037] rounded-full text-xs font-bold uppercase tracking-widest mb-3 border border-[#d7ccc8] shadow-sm">
           <span>📍</span> Denah Lokasi
@@ -140,6 +103,7 @@ function TicketContent() {
          <div className="flex items-center gap-2 bg-white/80 px-3 py-1 rounded-full shadow-sm"><div className="w-3 h-3 bg-blue-100 border border-blue-400 rounded-full"></div><span className="text-[10px] font-bold text-blue-800 uppercase">Umum (D-L)</span></div>
       </div>
 
+      {/* MAP */}
       <div className="max-w-5xl mx-auto overflow-hidden rounded-3xl bg-[#fff8e1]/90 backdrop-blur-sm border border-[#d7ccc8] shadow-xl mb-12 relative z-10 animate-fade-in-up delay-100">
         <div className="md:hidden bg-[#d7ccc8] text-[#5d4037] text-[10px] font-bold text-center py-2 flex items-center justify-center gap-2">
            <span>↔️</span> Geser ke samping untuk melihat posisi
@@ -179,6 +143,7 @@ function TicketContent() {
         </div>
       </div>
 
+      {/* DETAIL TIKET & TOMBOL KEMBALI */}
       {regId && (
         <div className="max-w-md mx-auto rounded-3xl overflow-hidden shadow-2xl shadow-[#3e2723]/10 border border-[#d7ccc8] mb-16 relative z-10 animate-fade-in-up delay-200">
            <div className="absolute inset-0 bg-[#fff8e1]"></div> 
@@ -208,7 +173,6 @@ function TicketContent() {
                 <span className="group-hover:animate-bounce">📥</span> Download E-Ticket
                 </button>
 
-                {/* --- TOMBOL KEMBALI KE HOME --- */}
                 <button 
                     onClick={() => router.push('/')} 
                     className="w-full py-4 bg-[#fff8e1] text-[#5d4037] font-bold rounded-xl border-2 border-[#5d4037] hover:bg-[#d7ccc8] transition-all active:scale-95"
@@ -221,73 +185,58 @@ function TicketContent() {
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto relative z-10 animate-fade-in-up delay-300">
-        <h3 className="text-center text-lg font-black text-white py-4 mb-6 bg-linear-to-r from-[#6d4c41] to-[#3e2723] rounded-xl uppercase tracking-widest text-shadow-sm">Daftar Teman Hadir</h3>
-        <div className="bg-[#fff8e1]/90 backdrop-blur-md rounded-3xl overflow-hidden shadow-xl border border-[#d7ccc8]">
-          <div className="max-h-96 overflow-y-auto custom-scrollbar">
-            <table className="w-full text-sm text-left text-[#5d4037]">
-              <thead className="bg-[#efebe9] text-[#8d6e63] sticky top-0 uppercase text-[10px] font-bold tracking-wider border-b border-[#d7ccc8]">
-                <tr>
-                  <th className="px-6 py-4">Kursi</th>
-                  <th className="px-6 py-4">Nama Siswa</th>
-                  <th className="px-6 py-4">Kelas</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#d7ccc8]">
-                {guestList.map((guest) => (
-                  <tr key={guest.regId} className="hover:bg-[#d7ccc8]/30 transition-colors">
-                    <td className="px-6 py-4 font-black text-[#3e2723] text-xs">{guest.seatNumbers.join(", ")}</td>
-                    <td className="px-6 py-4 font-bold text-[#5d4037] capitalize">{guest.childName || 'Tamu'}</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-[#efebe9] text-[#5d4037] px-2 py-1 rounded text-xs font-bold border border-[#d7ccc8]">
-                        {guest.childClass}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {guestList.length === 0 && <tr><td colSpan={3} className="text-center py-10 text-[#a1887f] font-medium">Belum ada yang mendaftar.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
+      {/* LEGEND BOTTOM */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#fff8e1]/95 backdrop-blur-md px-4 md:px-6 py-3 rounded-full flex items-center gap-4 md:gap-6 border border-[#d7ccc8] shadow-2xl z-50 w-max max-w-[90%] justify-center animate-fade-in-up delay-500">
          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-[#5d4037] rounded-full shadow-sm"></div><span className="text-[10px] font-bold text-[#5d4037] uppercase">Kamu</span></div>
          <div className="flex items-center gap-2"><div className="w-3 h-3 bg-[#d7ccc8] rounded-full"></div><span className="text-[10px] font-bold text-[#a1887f] uppercase">Terisi</span></div>
       </div>
 
+      {/* --- HIDDEN TICKET (Untuk Download) --- */}
       <div className="absolute -z-50 opacity-0 pointer-events-none top-0 left-0">
-        <div ref={ticketRef} style={{ width: '600px', background: '#1c1917', padding: '20px', fontFamily: 'sans-serif' }}>
-          <div style={{ backgroundImage: "url('/Background.png')", backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)', border: '4px solid #5d4037' }}>
-            <div style={{ flex: 1, padding: '40px', position: 'relative', borderRight: '3px dashed #5d4037' }}>
-               <div style={{ position: 'absolute', top: '-100px', left: '-50px', fontSize: '200px', fontWeight: 900, color: '#3e2723', opacity: 0.1, zIndex: 0 }}>21</div>
+        <div ref={ticketRef} style={{ width: '600px', padding: '20px', fontFamily: 'sans-serif' }}>
+          <div style={{ position: 'relative', display: 'flex', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.5)', border: '4px solid #5d4037' }}>
+            
+            {/* Disable linting for img tag */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+                src="/Background.png" 
+                alt="Ticket Background"
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    zIndex: 0
+                }}
+            />
+
+            <div style={{ flex: 1, padding: '40px', position: 'relative', zIndex: 10, borderRight: '3px dashed #5d4037' }}>
                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <p style={{ fontSize: '14px', fontWeight: 800, color: '#5d4037', letterSpacing: '4px', marginBottom: '10px' }}>ADMISSION TICKET</p>
-                  <h1 style={{ fontSize: '42px', fontWeight: 900, color: '#3e2723', lineHeight: 1, margin: '0 0 40px 0', textShadow: '1px 1px 0px rgba(255,255,255,0.4)' }}>PENTAS SENI<br/>2026</h1>
+                  <p style={{ fontSize: '14px', fontWeight: 800, color: '#5d4037', letterSpacing: '4px', marginBottom: '10px', textShadow: '1px 1px 0 #fff' }}>ADMISSION TICKET</p>
+                  <h1 style={{ fontSize: '42px', fontWeight: 900, color: '#3e2723', lineHeight: 1, margin: '0 0 40px 0', textShadow: '2px 2px 0px rgba(255,255,255,0.8)' }}>PENTAS SENI<br/>2026</h1>
                   <div style={{ marginBottom: '30px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase', marginBottom: '5px' }}>Guest Name</p>
-                    <p style={{ fontSize: '32px', fontWeight: 900, color: '#3e2723', textTransform: 'capitalize' }}>{studentData?.child_name}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase', marginBottom: '5px', textShadow: '1px 1px 0 #fff' }}>Guest Name</p>
+                    <p style={{ fontSize: '32px', fontWeight: 900, color: '#3e2723', textTransform: 'capitalize', textShadow: '1px 1px 0 #fff' }}>{studentData?.child_name}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '40px' }}>
                     <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase' }}>Class</p>
-                      <p style={{ fontSize: '20px', fontWeight: 900, color: '#3e2723' }}>{studentData?.child_class}</p>
+                      <p style={{ fontSize: '11px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase', textShadow: '1px 1px 0 #fff' }}>Class</p>
+                      <p style={{ fontSize: '20px', fontWeight: 900, color: '#3e2723', textShadow: '1px 1px 0 #fff' }}>{studentData?.child_class}</p>
                     </div>
                     <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase' }}>Hall</p>
-                      <p style={{ fontSize: '20px', fontWeight: 900, color: '#3e2723' }}>AUDITORIUM</p>
+                      <p style={{ fontSize: '11px', fontWeight: 700, color: '#8d6e63', textTransform: 'uppercase', textShadow: '1px 1px 0 #fff' }}>Hall</p>
+                      <p style={{ fontSize: '20px', fontWeight: 900, color: '#3e2723', textShadow: '1px 1px 0 #fff' }}>AUDITORIUM</p>
                     </div>
                   </div>
                </div>
-               <div style={{ position: 'absolute', bottom: '80px', right: '-15px', width: '30px', height: '30px', background: '#1c1917', borderRadius: '50%', border: '4px solid #5d4037' }}></div>
-               <div style={{ position: 'absolute', top: '80px', right: '-15px', width: '30px', height: '30px', background: '#1c1917', borderRadius: '50%', border: '4px solid #5d4037' }}></div>
             </div>
             
-            <div style={{ width: '200px', background: '#5d4037', padding: '40px 20px', color: '#efebe9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', borderLeft: '3px dashed #8d6e63' }}>
+            <div style={{ width: '200px', background: '#5d4037', padding: '40px 20px', color: '#efebe9', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', borderLeft: '3px dashed #8d6e63', position: 'relative', zIndex: 10 }}>
                <div style={{ textAlign: 'center', width: '100%' }}>
                   <p style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '2px', marginBottom: '10px', color: '#d7ccc8' }}>SEAT NO.</p>
-                  <h2 style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1.1, margin: 0, wordWrap: 'break-word', color: '#ffffff' }}>
+                  <h2 style={{ fontSize: '32px', fontWeight: 900, lineHeight: 1.1, margin: 0, color: '#ffffff' }}>
                       {mySeats.map(s => `${s.row_name}-${s.seat_number}`).join("/")}
                   </h2>
                </div>

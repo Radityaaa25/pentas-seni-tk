@@ -80,3 +80,80 @@ body {
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
 .delay-500 { animation-delay: 500ms; }
+
+/* ANIMASI INTRO */
+
+/* Muncul Pelan */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Hilang Pelan (Untuk Intro Akhir) */
+@keyframes fade-out-up {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-50px); pointer-events: none; }
+}
+
+/* Gambar Muncul Kenyal (Pop) */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.5); }
+  70% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Halaman Utama Masuk */
+@keyframes page-enter {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-intro-exit {
+  animation: fade-out-up 0.8s ease-in forwards;
+}
+
+.animate-page-enter {
+  animation: page-enter 1s ease-out forwards;
+}
+
+/* Animasi khusus Text & QR agar jelas di Android/iPhone */
+.text-shadow-sm {
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+}
+
+/* EFEK MENGKILAP (SHINE) UNTUK GOLDEN TICKET */
+@keyframes shine-move {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  50%, 100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 100%
+  );
+  transform: translateX(-150%) skewX(-25deg);
+  animation: shine-move 3s infinite ease-in-out;
+  pointer-events: none; /* Agar tidak mengganggu klik */
+}
