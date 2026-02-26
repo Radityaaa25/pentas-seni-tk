@@ -514,6 +514,19 @@ export default function Home() {
         </div>
       </div>
       
+     {/* --- ILUSTRASI BAWAH FORM --- */}
+      <div className={`relative w-full max-w-md flex justify-center gap-55 items-end px-6 -mt-35 md:-mt-40 z-20 pointer-events-none animate-fade-in-up delay-500 shrink-0 ${!showIntro ? 'flex' : 'hidden'}`}>
+         
+         <div className="relative w-28 h-40 mb-3 md:w-32 md:h-44 filter drop-shadow-lg shrink-0">
+            <Image src="/AnakPerempuan.png" alt="Anak Perempuan" fill className="object-contain object-bottom" />
+         </div>
+         
+         <div className="relative w-34 h-50 -mr-5 md:w-40 md:h-56 filter drop-shadow-lg shrink-0">
+            <Image src="/AnakLaki.png" alt="Anak Laki-laki" fill className="object-contain object-bottom" />
+         </div>
+
+</div>
+
       <div className="fixed bottom-4 text-center w-full text-[#3e2723] text-[10px] font-medium tracking-widest uppercase opacity-80 animate-fade-in-up delay-500 shrink-0" style={{ textShadow: '0px 0px 10px rgba(255,255,255,0.8)' }}>
         © 2026 TK Aisyiyah 21 Rawamangun
       </div>
